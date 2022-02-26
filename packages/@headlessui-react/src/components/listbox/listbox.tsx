@@ -33,6 +33,7 @@ import { isFocusableElement, FocusableMode } from '../../utils/focus-management'
 import { useWindowEvent } from '../../hooks/use-window-event'
 import { useOpenClosed, State, OpenClosedProvider } from '../../internal/open-closed'
 import { useResolveButtonType } from '../../hooks/use-resolve-button-type'
+import { getOwnerDocument } from '../../utils/owner-document'
 
 enum ListboxStates {
   Open,
@@ -498,7 +499,7 @@ let Options = forwardRefWithAs(function Options<
     let container = state.optionsRef.current
     if (!container) return
     if (state.listboxState !== ListboxStates.Open) return
-    if (container === document.activeElement) return
+    if (container === getOwnerDocument(container).activeElement) return
 
     container.focus({ preventScroll: true })
   }, [state.listboxState, state.optionsRef])

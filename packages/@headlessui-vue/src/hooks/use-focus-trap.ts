@@ -12,6 +12,7 @@ import { Keys } from '../keyboard'
 import { focusElement, focusIn, Focus, FocusResult } from '../utils/focus-management'
 import { useWindowEvent } from '../hooks/use-window-event'
 import { contains } from '../internal/dom-containers'
+import { getOwnerDocument } from '../utils/owner-document'
 
 export function useFocusTrap(
   containers: Ref<Set<HTMLElement>>,
@@ -26,7 +27,9 @@ export function useFocusTrap(
     if (containers.value.size !== 1) return
     let { initialFocus } = options.value
 
-    let activeElement = document.activeElement as HTMLElement
+    let container = Array.from(containers.value)[0]
+    let containerOwner = getOwnerDocument(container)
+    let activeElement = containerOwner.activeElement as HTMLElement
 
     if (initialFocus) {
       if (initialFocus === activeElement) {
@@ -54,7 +57,7 @@ export function useFocusTrap(
       if (!couldFocus) console.warn('There are no focusable elements inside the <FocusTrap />')
     }
 
-    previousActiveElement.value = document.activeElement as HTMLElement
+    previousActiveElement.value = containerOwner.activeElement as HTMLElement
   }
 
   // Restore when `enabled` becomes false
@@ -76,7 +79,7 @@ export function useFocusTrap(
   useWindowEvent('keydown', (event) => {
     if (!enabled.value) return
     if (event.key !== Keys.Tab) return
-    if (!document.activeElement) return
+    if (!getOwnerDocument(event.target as HTMLElement).activeElement) return
     if (containers.value.size !== 1) return
 
     event.preventDefault()
@@ -88,7 +91,7 @@ export function useFocusTrap(
       )
 
       if (result === FocusResult.Success) {
-        previousActiveElement.value = document.activeElement as HTMLElement
+        previousActiveElement.value = getOwnerDocument(element).activeElement as HTMLElement
         break
       }
     }

@@ -35,6 +35,7 @@ import { useWindowEvent } from '../../hooks/use-window-event'
 import { useTreeWalker } from '../../hooks/use-tree-walker'
 import { useOpenClosed, State, OpenClosedProvider } from '../../internal/open-closed'
 import { useResolveButtonType } from '../../hooks/use-resolve-button-type'
+import { getOwnerDocument } from '../../utils/owner-document'
 
 enum MenuStates {
   Open,
@@ -382,7 +383,7 @@ let Items = forwardRefWithAs(function Items<TTag extends ElementType = typeof DE
     let container = state.itemsRef.current
     if (!container) return
     if (state.menuState !== MenuStates.Open) return
-    if (container === document.activeElement) return
+    if (container === getOwnerDocument(container).activeElement) return
 
     container.focus({ preventScroll: true })
   }, [state.menuState, state.itemsRef])

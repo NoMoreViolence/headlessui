@@ -9,6 +9,7 @@ import { Keys } from '../components/keyboard'
 import { focusElement, focusIn, Focus, FocusResult } from '../utils/focus-management'
 import { useWindowEvent } from './use-window-event'
 import { useIsMounted } from './use-is-mounted'
+import { getOwnerDocument } from '../utils/owner-document'
 
 export enum Features {
   /** No features enabled for the `useFocusTrap` hook. */
@@ -42,7 +43,9 @@ export function useFocusTrap(
   } = {}
 ) {
   let restoreElement = useRef<HTMLElement | null>(
-    typeof window !== 'undefined' ? (document.activeElement as HTMLElement) : null
+    typeof window !== 'undefined'
+      ? (getOwnerDocument(container).activeElement as HTMLElement | null)
+      : null
   )
   let previousActiveElement = useRef<HTMLElement | null>(null)
   let mounted = useIsMounted()
@@ -54,7 +57,7 @@ export function useFocusTrap(
   useEffect(() => {
     if (!featuresRestoreFocus) return
 
-    restoreElement.current = document.activeElement as HTMLElement
+    restoreElement.current = getOwnerDocument(container).activeElement as HTMLElement
   }, [featuresRestoreFocus])
 
   // Restore the focus when we unmount the component.
@@ -72,7 +75,7 @@ export function useFocusTrap(
     if (!featuresInitialFocus) return
     if (!container.current) return
 
-    let activeElement = document.activeElement as HTMLElement
+    let activeElement = getOwnerDocument(container).activeElement as HTMLElement
 
     if (initialFocus?.current) {
       if (initialFocus?.current === activeElement) {
@@ -93,7 +96,7 @@ export function useFocusTrap(
       }
     }
 
-    previousActiveElement.current = document.activeElement as HTMLElement
+    previousActiveElement.current = getOwnerDocument(container).activeElement as HTMLElement
   }, [container, initialFocus, featuresInitialFocus])
 
   // Handle `Tab` & `Shift+Tab` keyboard events
@@ -111,7 +114,7 @@ export function useFocusTrap(
         (event.shiftKey ? Focus.Previous : Focus.Next) | Focus.WrapAround
       ) === FocusResult.Success
     ) {
-      previousActiveElement.current = document.activeElement as HTMLElement
+      previousActiveElement.current = getOwnerDocument(container).activeElement as HTMLElement
     }
   })
 

@@ -24,6 +24,7 @@ import { useWindowEvent } from '../../hooks/use-window-event'
 import { useOpenClosed, State, useOpenClosedProvider } from '../../internal/open-closed'
 import { match } from '../../utils/match'
 import { useResolveButtonType } from '../../hooks/use-resolve-button-type'
+import { getOwnerDocument } from '../../utils/owner-document'
 
 enum ListboxStates {
   Open,
@@ -209,7 +210,7 @@ export let Listbox = defineComponent({
 
     useWindowEvent('mousedown', (event) => {
       let target = event.target as HTMLElement
-      let active = document.activeElement
+      let active = getOwnerDocument(event.target as HTMLElement).activeElement
 
       if (listboxState.value !== ListboxStates.Open) return
       if (dom(buttonRef)?.contains(target)) return

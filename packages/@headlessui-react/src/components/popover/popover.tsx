@@ -36,6 +36,7 @@ import {
 import { useWindowEvent } from '../../hooks/use-window-event'
 import { OpenClosedProvider, State, useOpenClosed } from '../../internal/open-closed'
 import { useResolveButtonType } from '../../hooks/use-resolve-button-type'
+import { getOwnerDocument } from '../../utils/owner-document'
 
 enum PopoverStates {
   Open,
@@ -197,7 +198,8 @@ let PopoverRoot = forwardRefWithAs(function Popover<
   let isFocusWithinPopoverGroup = useCallback(() => {
     return (
       groupContext?.isFocusWithinPopoverGroup() ??
-      (button?.contains(document.activeElement) || panel?.contains(document.activeElement))
+      (button?.contains(getOwnerDocument(button).activeElement) ||
+        panel?.contains(getOwnerDocument(panel).activeElement))
     )
   }, [groupContext, button, panel])
 
@@ -322,7 +324,7 @@ let Button = forwardRefWithAs(function Button<TTag extends ElementType = typeof 
     'focus',
     () => {
       previousActiveElementRef.current = activeElementRef.current
-      activeElementRef.current = document.activeElement
+      activeElementRef.current = getOwnerDocument(internalButtonRef).activeElement as HTMLElement
     },
     true
   )
@@ -354,7 +356,10 @@ let Button = forwardRefWithAs(function Button<TTag extends ElementType = typeof 
           case Keys.Escape:
             if (state.popoverState !== PopoverStates.Open) return closeOthers?.(state.buttonId)
             if (!internalButtonRef.current) return
-            if (!internalButtonRef.current.contains(document.activeElement)) return
+            if (
+              !internalButtonRef.current.contains(getOwnerDocument(internalButtonRef).activeElement)
+            )
+              return
             event.preventDefault()
             event.stopPropagation()
             dispatch({ type: ActionTypes.ClosePopover })
@@ -606,7 +611,8 @@ let Panel = forwardRefWithAs(function Panel<TTag extends ElementType = typeof DE
         case Keys.Escape:
           if (state.popoverState !== PopoverStates.Open) return
           if (!internalPanelRef.current) return
-          if (!internalPanelRef.current.contains(document.activeElement)) return
+          if (!internalPanelRef.current.contains(getOwnerDocument(internalPanelRef).activeElement))
+            return
           event.preventDefault()
           event.stopPropagation()
           dispatch({ type: ActionTypes.ClosePopover })
@@ -635,7 +641,7 @@ let Panel = forwardRefWithAs(function Panel<TTag extends ElementType = typeof DE
     if (state.popoverState !== PopoverStates.Open) return
     if (!internalPanelRef.current) return
 
-    let activeElement = document.activeElement as HTMLElement
+    let activeElement = getOwnerDocument(internalPanelRef).activeElement as HTMLElement
     if (internalPanelRef.current.contains(activeElement)) return // Already focused within Dialog
 
     focusIn(internalPanelRef.current, Focus.First)
@@ -646,9 +652,9 @@ let Panel = forwardRefWithAs(function Panel<TTag extends ElementType = typeof DE
     if (state.popoverState !== PopoverStates.Open) return
     if (!internalPanelRef.current) return
     if (event.key !== Keys.Tab) return
-    if (!document.activeElement) return
+    if (!getOwnerDocument(internalPanelRef).activeElement) return
     if (!internalPanelRef.current) return
-    if (!internalPanelRef.current.contains(document.activeElement)) return
+    if (!internalPanelRef.current.contains(getOwnerDocument(internalPanelRef).activeElement)) return
 
     // We will take-over the default tab behaviour so that we have a bit
     // control over what is focused next. It will behave exactly the same,
@@ -689,7 +695,8 @@ let Panel = forwardRefWithAs(function Panel<TTag extends ElementType = typeof DE
       if (state.popoverState !== PopoverStates.Open) return
       if (!internalPanelRef.current) return
 
-      if (internalPanelRef.current?.contains(document.activeElement as HTMLElement)) return
+      if (internalPanelRef.current?.contains(getOwnerDocument(internalPanelRef).activeElement))
+        return
       dispatch({ type: ActionTypes.ClosePopover })
     },
     true
@@ -757,7 +764,7 @@ let Group = forwardRefWithAs(function Group<TTag extends ElementType = typeof DE
   )
 
   let isFocusWithinPopoverGroup = useCallback(() => {
-    let element = document.activeElement as HTMLElement
+    let element = getOwnerDocument(internalGroupRef).activeElement
 
     if (internalGroupRef.current?.contains(element)) return true
 
